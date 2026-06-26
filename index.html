@@ -140,7 +140,7 @@ body {
   gap: 10px;
   margin-bottom: 1.5rem;
 }
-.week-select select {
+.week-select select, .stats-select select {
   flex: 1;
   padding: 10px 14px;
   border: 1px solid var(--border-strong);
@@ -224,16 +224,18 @@ body {
 }
 
 .section-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin: 2rem 0 10px;
+  color: var(--fill-accent);
+  margin: 1.8rem 0 12px;
+  padding-left: 4px;
+  border-left: 3px solid var(--fill-accent);
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
   margin-bottom: 1.5rem;
 }
@@ -249,7 +251,7 @@ body {
   margin-bottom: 6px;
 }
 .stat-val {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -259,12 +261,13 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface-2);
+  margin-bottom: 1.5rem;
 }
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 600px;
+  min-width: 500px;
 }
 th {
   padding: 12px 14px;
@@ -303,7 +306,7 @@ tr.highlight td {
 }
 .empty {
   text-align: center;
-  padding: 3rem;
+  padding: 2.5rem;
   color: var(--text-muted);
 }
 
@@ -331,21 +334,48 @@ tr.highlight td {
   justify-content: center; font-size: 14px; color: var(--text-secondary);
   z-index: 999; transition: opacity 0.3s ease;
 }
+
+.prob-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prob-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: #edf2f7;
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 160px;
+}
+.prob-bar-fill {
+  height: 100%;
+  background: var(--fill-success);
+  border-radius: 4px;
+}
+.prob-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 45px;
+}
 </style>
 
+<!-- 讀取遮罩 -->
 <div id="loading-screen">雲端資料同步中...</div>
 
 <div class="wrap">
 <div class="top-bar">
-  <h2>S3挑戰者驗血統:> </h2>
+  <h2>S3挑戰者幸運箱驗血統 ก็็็็็็็็็็็็็ʕ•͡ᴥ•ʔ ก้้้้้้้้้้้</h2>
 </div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('record')">記錄抽獎</div>
   <div class="tab" onclick="switchTab('stats')">統計總覽</div>
-  <div class="tab" onclick="switchTab('players')">成員管理</div>
+  <div class="tab" onclick="switchTab('players')">歐洲人們</div>
 </div>
 
+<!-- RECORD TAB -->
 <div class="section active" id="tab-record">
   <div class="player-list" id="player-chips"></div>
   <div class="week-select">
@@ -354,12 +384,31 @@ tr.highlight td {
   <div class="prize-grid" id="prize-grid"></div>
 </div>
 
+<!-- STATS TAB -->
 <div class="section" id="tab-stats">
+  <div class="stats-select" style="margin-bottom: 1.5rem;">
+    <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px; font-weight:600;">選擇要檢視的成員明細：</label>
+    <select id="stats-player-filter" onchange="renderStats()"></select>
+  </div>
+
+  <div class="section-label" id="stats-card-title">數據看板 (僅計廣播品項)</div>
   <div class="stats-grid" id="stats-cards"></div>
-  <div class="section-label">每人 × 每週明細</div>
-  <div class="tbl-wrap"><table id="stats-table"><thead></thead><tbody></tbody></table></div>
+  
+  <div class="section-label" id="stats-rank-title">廣播品項分佈排行</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>品項名稱</th><th>累積數量</th><th>分佈比例 (佔廣播總量)</th></tr></thead>
+      <tbody id="global-prob-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="section-label" id="stats-detail-title">每週紀錄明細</div>
+  <div class="tbl-wrap">
+    <table id="stats-table"><thead></thead><tbody></tbody></table>
+  </div>
 </div>
 
+<!-- PLAYERS TAB -->
 <div class="section" id="tab-players">
   <div class="section-label">新增成員</div>
   <div class="add-player-row">
@@ -375,7 +424,6 @@ tr.highlight td {
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <script>
-// 已經換成你剛剛申請的正確 Firebase 金鑰
 const firebaseConfig = {
   apiKey: "AIzaSyBnelYJnphxiM_ErbgyQx-5g3LiwDVqNUs",
   authDomain: "maple-lucky-tracker-7e739.firebaseapp.com",
@@ -386,10 +434,10 @@ const firebaseConfig = {
   appId: "1:408553743543:web:f98b0f605a15e852865932"
 };
 
-// 初始化 Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// 完整清單（不更動任何名字）
 const PRIZES = [
   "挑戰者幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
   "挑戰者幸運票 5個","挑戰者幸運票 6個","挑戰者幸運票 7個","挑戰者幸運票 8個",
@@ -401,6 +449,21 @@ const PRIZES = [
   "傳說潛在能力賦予卷軸100%","永恆的黃金發條",
   "永恆傳說頂級培羅德飾品選擇箱","永恆傳說米特拉的憤怒選擇箱",
   "永恆星力20星強化券(200級)","永恆18星永恆防具箱","永恆20星漆黑的Boss飾品箱"
+];
+
+// 精準對應這 11 項廣播核心大獎（文字完全一致）
+const BROADCAST_ITEMS = [
+  "永恆20星漆黑的Boss飾品箱",
+  "永恆星力20星強化券(200級)",
+  "挑戰者幸運票 500個",
+  "永恆18星永恆防具箱",
+  "永恆傳說米特拉的憤怒選擇箱",
+  "永恆傳說Boss飾品選擇箱",
+  "永恆的黃金發條",
+  "挑戰者幸運票 100個",
+  "挑戰者幸運票 50個",
+  "傳說潛在能力賦予卷軸100%",
+  "永恆傳說頂級培羅德飾品選擇箱"
 ];
 
 function genWeeks(){
@@ -425,13 +488,11 @@ let state={
   activeWeek:WEEKS[0].key
 };
 
-// 監聽雲端資料庫
 db.ref('tracker-state').on('value', (snapshot) => {
   const val = snapshot.val();
   if (val) {
     state.players = val.players || [];
     state.records = val.records || {};
-    
     if (state.players.length > 0) {
       if (!state.activePlayer || !state.players.find(p=>p.id === state.activePlayer)) {
         state.activePlayer = state.players[0].id;
@@ -447,6 +508,20 @@ db.ref('tracker-state').on('value', (snapshot) => {
   
   document.getElementById('loading-screen').style.opacity = '0';
   setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
+  
+  const filterSel = document.getElementById('stats-player-filter');
+  if(filterSel) {
+    const currentSel = filterSel.value;
+    let html = `<option value="all">ʕʘ̅͜ʘ̅ʔ 整體累計</option>`;
+    state.players.forEach(p => {
+      html += `<option value="${p.id}">👤 ${p.name} 的個人明細</option>`;
+    });
+    filterSel.innerHTML = html;
+    if(currentSel && [...filterSel.options].some(o => o.value === currentSel)) {
+      filterSel.value = currentSel;
+    }
+  }
+
   render();
 });
 
@@ -483,7 +558,7 @@ function changeCount(prize, delta, event){
 function renderPlayers(){
   const el=document.getElementById('player-chips');
   if(!state.players || !state.players.length) {
-    el.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:6px 0;">請至「成員管理」分頁新增您的第一位成員名稱</div>`;
+    el.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:6px 0;">請至「成員管理」分頁新增成員名稱</div>`;
     return;
   }
   el.innerHTML=state.players.map(p=>`
@@ -531,52 +606,152 @@ function renderPrizes(){
 }
 
 function renderStats(){
+  const filterMode = document.getElementById('stats-player-filter')?.value || 'all';
   const el=document.getElementById('stats-cards');
   const tbl=document.getElementById('stats-table');
+  const probBody = document.getElementById('global-prob-tbody');
   
   if(!state.players || !state.players.length) {
-    el.innerHTML = `<div class="stat-card" style="grid-column: span 3;"><div class="stat-label">全體合計</div><div class="stat-val">0 個</div></div>`;
+    el.innerHTML = `<div class="stat-card"><div class="stat-label">合計</div><div class="stat-val">0 次</div></div>`;
     tbl.querySelector('thead').innerHTML = '';
     tbl.querySelector('tbody').innerHTML = `<tr><td colspan="4" class="empty">暫無成員資料</td></tr>`;
+    probBody.innerHTML = `<tr><td colspan="3" class="empty">暫無數據</td></tr>`;
     return;
   }
-  
-  let totalAll=0;
-  const rows=state.players.map(p=>{
-    let total=0;
-    WEEKS.forEach(w=>{
-      const rec = getRecordObj(p.id, w.key);
-      Object.values(rec).forEach(c => total += c);
-    });
-    totalAll+=total;
-    return {name:p.name,total,id:p.id};
-  });
-  
-  el.innerHTML=rows.map(r=>`<div class="stat-card"><div class="stat-label">${r.name}</div><div class="stat-val">${r.total} 個</div></div>`).join('')+
-    `<div class="stat-card"><div class="stat-label">全體合計</div><div class="stat-val">${totalAll} 個</div></div>`;
 
-  const head=tbl.querySelector('thead');
-  const body=tbl.querySelector('tbody');
-  head.innerHTML=`<tr><th>成員</th><th>週次</th><th>獲得獎項 (數量)</th><th>總量</th></tr>`;
-  let html='';
+  let totalBroadcastCount = 0; 
+  let broadcastPrizeCounts = {};
+  let playerBroadcastCounts = {}; 
   
-  state.players.forEach(p=>{
-    WEEKS.forEach(w=>{
+  // 初始化計數器
+  BROADCAST_ITEMS.forEach(p => broadcastPrizeCounts[p] = 0);
+  
+  state.players.forEach(p => {
+    playerBroadcastCounts[p.id] = 0;
+    WEEKS.forEach(w => {
       const rec = getRecordObj(p.id, w.key);
-      const items = Object.entries(rec);
-      if(items.length===0){
-        html+=`<tr><td>${p.name}</td><td style="white-space:nowrap;color:var(--text-secondary)">${w.label}</td><td><span class="badge badge-none">—</span></td><td style="color:var(--text-muted)">0</td></tr>`;
+      Object.entries(rec).forEach(([pName, c]) => {
+        // 精準比對：只有在這11項內才加權重
+        if (BROADCAST_ITEMS.includes(pName)) {
+          broadcastPrizeCounts[pName] += c;
+          totalBroadcastCount += c;
+          playerBroadcastCounts[p.id] += c;
+        }
+      });
+    });
+  });
+
+  if (filterMode === 'all') {
+    document.getElementById('stats-card-title').textContent = '全體成員累積統計 (僅計算廣播品項)';
+    document.getElementById('stats-rank-title').textContent = '廣播大獎分佈 (僅計算指定11項)';
+    document.getElementById('stats-detail-title').textContent = '全體成員 × 每週完整明細';
+
+    el.innerHTML = state.players.map(p => `
+      <div class="stat-card">
+        <div class="stat-label">${p.name} 的廣播品項總數</div>
+        <div class="stat-val" style="color:var(--text-success)">${playerBroadcastCounts[p.id]} 次</div>
+      </div>
+    `).join('');
+
+    const sorted = Object.entries(broadcastPrizeCounts).filter(([_, c]) => c > 0).sort((a,b)=>b[1]-a[1]);
+    if(sorted.length === 0) {
+      probBody.innerHTML = `<tr><td colspan="3" class="empty">目前尚無任何廣播品項紀錄數據 😶</td></tr>`;
+    } else {
+      probBody.innerHTML = sorted.map(([name, c]) => {
+        const pct = totalBroadcastCount > 0 ? ((c / totalBroadcastCount) * 100).toFixed(1) : 0;
+        return `<tr><td style="font-weight: 500;">${name}</td><td style="font-weight:600">${c} 個</td><td><div class="prob-bar-container"><div class="prob-bar-bg"><div class="prob-bar-fill" style="width:${pct}%"></div></div><span class="prob-text">${pct}%</span></div></td></tr>`;
+      }).join('');
+    }
+
+    tbl.querySelector('thead').innerHTML = `<tr><th>成員</th><th>週次</th><th>獲得品項內容 (數量)</th><th>廣播品項單週累計</th></tr>`;
+    let html = '';
+    state.players.forEach(p => {
+      WEEKS.forEach(w => {
+        const rec = getRecordObj(p.id, w.key);
+        const allItems = Object.entries(rec).filter(([n, _]) => PRIZES.includes(n));
+        
+        if(allItems.length === 0) {
+          html += `<tr><td>${p.name}</td><td style="color:var(--text-secondary)">${w.label}</td><td><span class="badge badge-none">—</span></td><td>0</td></tr>`;
+        } else {
+          let broadcastSum = 0;
+          const badges = allItems.map(([n, c]) => { 
+            // 嚴格對應這 11 項：是這 11 項才亮綠燈且加總
+            if(BROADCAST_ITEMS.includes(n)) {
+              broadcastSum += c; 
+              return `<span class="badge badge-prize" style="margin:2px; background:var(--bg-success); color:var(--text-success); border-color:var(--border-success); font-weight:600;">${n} x${c}</span>`; 
+            }
+            // 其餘外觀、其餘普通小票一律不計（且不顯示為不對的綠燈）
+            return `<span class="badge badge-none" style="margin:2px; opacity:0.6;">${n} x${c}</span>`; 
+          }).join(' ');
+          
+          const rowClass = broadcastSum > 0 ? 'class="highlight"' : '';
+          html += `<tr ${rowClass}><td>${p.name}</td><td style="color:var(--text-secondary)">${w.label}</td><td>${badges}</td><td style="font-weight:600; color:var(--text-success)">${broadcastSum}</td></tr>`;
+        }
+      });
+    });
+    tbl.querySelector('tbody').innerHTML = html;
+
+  } else {
+    const targetPlayer = state.players.find(p => p.id === filterMode);
+    if (!targetPlayer) return;
+
+    document.getElementById('stats-card-title').textContent = `${targetPlayer.name} 的數據記錄 (僅計廣播品項)`;
+    document.getElementById('stats-rank-title').textContent = `${targetPlayer.name} 的個人廣播品項分佈排行`;
+    document.getElementById('stats-detail-title').textContent = `${targetPlayer.name} 的每週紀錄明細`;
+
+    let pBroadcastPrizeCounts = {};
+    BROADCAST_ITEMS.forEach(p => pBroadcastPrizeCounts[p] = 0);
+    
+    WEEKS.forEach(w => {
+      const rec = getRecordObj(targetPlayer.id, w.key);
+      Object.entries(rec).forEach(([n, c]) => {
+        if (BROADCAST_ITEMS.includes(n)) pBroadcastPrizeCounts[n] += c;
+      });
+    });
+
+    const pBroadcastTotal = playerBroadcastCounts[targetPlayer.id] || 0;
+
+    el.innerHTML = `
+      <div class="stat-card" style="grid-column: span 3;">
+        <div class="stat-label">累積抽中廣播大獎總次數</div>
+        <div class="stat-val" style="color:var(--text-success); font-size: 26px;">${pBroadcastTotal} 次</div>
+      </div>
+    `;
+
+    const pSorted = Object.entries(pBroadcastPrizeCounts).filter(([_, c]) => c > 0).sort((a,b)=>b[1]-a[1]);
+    if(pSorted.length === 0) {
+      probBody.innerHTML = `<tr><td colspan="3" class="empty">該成員目前尚未有任何廣播品項紀錄 😶</td></tr>`;
+    } else {
+      probBody.innerHTML = pSorted.map(([name, c]) => {
+        const pct = pBroadcastTotal > 0 ? ((c / pBroadcastTotal) * 100).toFixed(1) : 0;
+        return `<tr><td style="font-weight: 500;">${name}</td><td style="font-weight:600">${c} 個</td><td><div class="prob-bar-container"><div class="prob-bar-bg"><div class="prob-bar-fill" style="width:${pct}%"></div></div><span class="prob-text">${pct}%</span></div></td></tr>`;
+      }).join('');
+    }
+
+    tbl.querySelector('thead').innerHTML = `<tr><th>週次</th><th>獲得品項內容 (數量)</th><th>廣播品項單週累計</th></tr>`;
+    let html = '';
+    WEEKS.forEach(w => {
+      const rec = getRecordObj(targetPlayer.id, w.key);
+      const allItems = Object.entries(rec).filter(([n, _]) => PRIZES.includes(n));
+      
+      if(allItems.length === 0) {
+        html += `<tr><td style="color:var(--text-secondary)">${w.label}</td><td><span class="badge badge-none">—</span></td><td>0</td></tr>`;
       } else {
-        let totalWk = 0;
-        const badges = items.map(([name, count]) => {
-          totalWk += count;
-          return `<span class="badge badge-prize" style="margin:2px">${name} x${count}</span>`;
+        let broadcastSum = 0;
+        const badges = allItems.map(([n, c]) => { 
+          if(BROADCAST_ITEMS.includes(n)) {
+            broadcastSum += c; 
+            return `<span class="badge badge-prize" style="margin:2px; background:var(--bg-success); color:var(--text-success); border-color:var(--border-success); font-weight:600;">${n} x${c}</span>`; 
+          }
+          return `<span class="badge badge-none" style="margin:2px; opacity:0.6;">${n} x${c}</span>`; 
         }).join(' ');
-        html+=`<tr class="highlight"><td>${p.name}</td><td style="white-space:nowrap;color:var(--text-secondary)">${w.label}</td><td>${badges}</td><td style="font-weight:600; color:var(--text-success)">${totalWk}</td></tr>`;
+        
+        const rowClass = broadcastSum > 0 ? 'class="highlight"' : '';
+        html += `<tr ${rowClass}><td style="color:var(--text-secondary)">${w.label}</td><td>${badges}</td><td style="font-weight:600; color:var(--text-success)">${broadcastSum}</td></tr>`;
       }
     });
-  });
-  body.innerHTML=html||`<tr><td colspan="4" class="empty">尚無記錄</td></tr>`;
+    tbl.querySelector('tbody').innerHTML = html;
+  }
 }
 
 function renderManage(){
