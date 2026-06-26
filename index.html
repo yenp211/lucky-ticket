@@ -359,9 +359,32 @@ tr.highlight td {
   color: var(--text-secondary);
   min-width: 45px;
 }
+
+/* 針對主頁引導選單的成員微調按鈕 */
+.welcome-chips-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1rem 0 1.5rem;
+}
+.welcome-chip {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.welcome-chip:hover {
+  border-color: var(--fill-accent);
+  background: var(--bg-accent);
+}
 </style>
 
-<!-- 讀取遮罩 -->
 <div id="loading-screen">雲端資料同步中...</div>
 
 <div class="wrap">
@@ -375,7 +398,6 @@ tr.highlight td {
   <div class="tab" onclick="switchTab('players')">歐洲人們</div>
 </div>
 
-<!-- RECORD TAB -->
 <div class="section active" id="tab-record">
   <div class="player-list" id="player-chips"></div>
   <div class="week-select">
@@ -384,7 +406,6 @@ tr.highlight td {
   <div class="prize-grid" id="prize-grid"></div>
 </div>
 
-<!-- STATS TAB -->
 <div class="section" id="tab-stats">
   <div class="stats-select" style="margin-bottom: 1.5rem;">
     <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px; font-weight:600;">選擇要檢視的成員明細：</label>
@@ -408,7 +429,6 @@ tr.highlight td {
   </div>
 </div>
 
-<!-- PLAYERS TAB -->
 <div class="section" id="tab-players">
   <div class="section-label">新增成員</div>
   <div class="add-player-row">
@@ -437,7 +457,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 完整清單（不更動任何名字）
+// 完整清單
 const PRIZES = [
   "挑戰者幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
   "挑戰者幸運票 5個","挑戰者幸運票 6個","挑戰者幸運票 7個","挑戰者幸運票 8個",
@@ -451,7 +471,7 @@ const PRIZES = [
   "永恆星力20星強化券(200級)","永恆18星永恆防具箱","永恆20星漆黑的Boss飾品箱"
 ];
 
-// 精準對應這 11 項廣播核心大獎（文字完全一致）
+// 11 項廣播核心大獎
 const BROADCAST_ITEMS = [
   "永恆20星漆黑的Boss飾品箱",
   "永恆星力20星強化券(200級)",
@@ -493,9 +513,17 @@ db.ref('tracker-state').on('value', (snapshot) => {
   if (val) {
     state.players = val.players || [];
     state.records = val.records || {};
+    
+    // ✨ 核心邏輯：讀取目前瀏覽器記錄的「本地使用者」
+    const savedLocalPlayer = localStorage.getItem('my_lucky_player_id');
+    
     if (state.players.length > 0) {
-      if (!state.activePlayer || !state.players.find(p=>p.id === state.activePlayer)) {
-        state.activePlayer = state.players[0].id;
+      // 如果本地有紀錄，且這個人還在雲端名單裡，就直接帶入
+      if (savedLocalPlayer && state.players.find(p => p.id === savedLocalPlayer)) {
+        state.activePlayer = savedLocalPlayer;
+      } else {
+        // 如果本地沒紀錄，或者紀錄的人被刪除了，就不自動預設任何人（強制顯示歡迎畫面）
+        state.activePlayer = '';
       }
     } else {
       state.activePlayer = '';
@@ -557,22 +585,34 @@ function changeCount(prize, delta, event){
 
 function renderPlayers(){
   const el=document.getElementById('player-chips');
-  if(!state.players || !state.players.length) {
-    el.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:6px 0;">請至「成員管理」分頁新增成員名稱</div>`;
+  // ✨ 如果本地還沒選擇或創立角色，上方就不顯示切換按鈕（保持畫面乾淨）
+  if(!state.activePlayer || !state.players || !state.players.length) {
+    el.innerHTML = ``;
     return;
   }
-  el.innerHTML=state.players.map(p=>`
+  
+  // 加上一個「切換/登出」的灰色小按鈕，讓想換角色的人可以隨時點擊回首頁
+  let html = state.players.map(p=>`
     <div class="player-chip ${p.id===state.activePlayer?'active':''}" onclick="selectPlayer('${p.id}')">
       ${p.name}
     </div>`).join('');
+    
+  html += `<div class="player-chip" style="background:#e2e8f0; border-color:#cbd5e0; color:var(--text-secondary);" onclick="logoutPlayer()">👤 換人記錄</div>`;
+  el.innerHTML = html;
 }
 
 function selectPlayer(id){
-  state.activePlayer=id;
+  state.activePlayer = id;
+  localStorage.setItem('my_lucky_player_id', id); // ✨ 記住這台電腦是誰
   renderPrizes();
-  document.querySelectorAll('.player-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.textContent.trim() === state.players.find(p=>p.id===id)?.name);
-  });
+  renderPlayers();
+}
+
+function logoutPlayer(){
+  localStorage.removeItem('my_lucky_player_id'); // ✨ 忘記這台電腦是誰
+  state.activePlayer = '';
+  renderPrizes();
+  renderPlayers();
 }
 
 function renderWeeks(){
@@ -585,8 +625,43 @@ function renderWeeks(){
 
 function renderPrizes(){
   state.activeWeek=document.getElementById('week-select').value;
+  
+  // ✨ 當「這台電腦」還沒綁定角色時，不論雲端有沒有人，都顯示最貼心的引導主頁！
   if(!state.activePlayer) {
-    document.getElementById('prize-grid').innerHTML = `<div class="empty" style="grid-column: span 3; padding: 2rem;">請先新增成員才能開始記錄抽獎品項喔！</div>`;
+    let existPlayersHtml = '';
+    
+    // 如果雲端本來就有其他朋友建立的名字，就做成小按鈕讓新朋友挑選，免得重複建帳號
+    if(state.players && state.players.length > 0) {
+      existPlayersHtml = `
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 1.5rem 0 0.5rem; font-weight:600;">你是已經在名單內的人嗎？直接點選你：</p>
+        <div class="welcome-chips-container">
+          ${state.players.map(p => `<div class="welcome-chip" onclick="selectPlayer('${p.id}')">👤 ${p.name}</div>`).join('')}
+        </div>
+        <div style="border-top:1px dashed var(--border-strong); margin: 1.5rem 0; height:0;"></div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.8rem; font-weight:600;">如果是第一次來的新朋友，請在下面輸入你的名字：</p>
+      `;
+    } else {
+      existPlayersHtml = `
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          目前雲端還沒有任何人建立成員喔，輸入你的名字來當開荒第一人吧：
+        </p>
+      `;
+    }
+
+    document.getElementById('prize-grid').innerHTML = `
+      <div class="empty" style="grid-column: span 3; padding: 3rem 1.5rem; background: var(--surface-2); border: 1px dashed var(--border-strong); border-radius: 12px; margin-top: 1rem; width: 100%;">
+        <p style="font-size: 16px; color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">
+          ʕ̡̢̡ʘ̅͟͜͡ʘ̲̅ʔ̢̡̢ 一起來看看S3上了幾次廣
+        </p>
+        
+        ${existPlayersHtml}
+        
+        <div class="add-player-row" style="max-width: 400px; margin: 0 auto; margin-bottom: 0;">
+          <input type="text" id="first-player-input" placeholder="例如：小楓" onkeydown="if(event.key==='Enter')addFirstPlayer()">
+          <button class="btn primary" onclick="addFirstPlayer()">創建新角色</button>
+        </div>
+      </div>
+    `;
     return;
   }
   
@@ -623,7 +698,6 @@ function renderStats(){
   let broadcastPrizeCounts = {};
   let playerBroadcastCounts = {}; 
   
-  // 初始化計數器
   BROADCAST_ITEMS.forEach(p => broadcastPrizeCounts[p] = 0);
   
   state.players.forEach(p => {
@@ -631,7 +705,6 @@ function renderStats(){
     WEEKS.forEach(w => {
       const rec = getRecordObj(p.id, w.key);
       Object.entries(rec).forEach(([pName, c]) => {
-        // 精準比對：只有在這11項內才加權重
         if (BROADCAST_ITEMS.includes(pName)) {
           broadcastPrizeCounts[pName] += c;
           totalBroadcastCount += c;
@@ -642,13 +715,13 @@ function renderStats(){
   });
 
   if (filterMode === 'all') {
-    document.getElementById('stats-card-title').textContent = '全體成員累積統計 (僅計算廣播品項)';
-    document.getElementById('stats-rank-title').textContent = '廣播大獎分佈 (僅計算指定11項)';
+    document.getElementById('stats-card-title').textContent = '全體成員累積統計 (僅計算藍廣)';
+    document.getElementById('stats-rank-title').textContent = '這些都是藍廣';
     document.getElementById('stats-detail-title').textContent = '全體成員 × 每週完整明細';
 
     el.innerHTML = state.players.map(p => `
       <div class="stat-card">
-        <div class="stat-label">${p.name} 的廣播品項總數</div>
+        <div class="stat-label">${p.name} 的藍廣總數</div>
         <div class="stat-val" style="color:var(--text-success)">${playerBroadcastCounts[p.id]} 次</div>
       </div>
     `).join('');
@@ -663,7 +736,7 @@ function renderStats(){
       }).join('');
     }
 
-    tbl.querySelector('thead').innerHTML = `<tr><th>成員</th><th>週次</th><th>獲得品項內容 (數量)</th><th>廣播品項單週累計</th></tr>`;
+    tbl.querySelector('thead').innerHTML = `<tr><th>成員</th><th>週次</th><th>獲得品項內容 (數量)</th><th>藍廣單週累計</th></tr>`;
     let html = '';
     state.players.forEach(p => {
       WEEKS.forEach(w => {
@@ -675,12 +748,10 @@ function renderStats(){
         } else {
           let broadcastSum = 0;
           const badges = allItems.map(([n, c]) => { 
-            // 嚴格對應這 11 項：是這 11 項才亮綠燈且加總
             if(BROADCAST_ITEMS.includes(n)) {
               broadcastSum += c; 
               return `<span class="badge badge-prize" style="margin:2px; background:var(--bg-success); color:var(--text-success); border-color:var(--border-success); font-weight:600;">${n} x${c}</span>`; 
             }
-            // 其餘外觀、其餘普通小票一律不計（且不顯示為不對的綠燈）
             return `<span class="badge badge-none" style="margin:2px; opacity:0.6;">${n} x${c}</span>`; 
           }).join(' ');
           
@@ -696,7 +767,7 @@ function renderStats(){
     if (!targetPlayer) return;
 
     document.getElementById('stats-card-title').textContent = `${targetPlayer.name} 的數據記錄 (僅計廣播品項)`;
-    document.getElementById('stats-rank-title').textContent = `${targetPlayer.name} 的個人廣播品項分佈排行`;
+    document.getElementById('stats-rank-title').textContent = `${targetPlayer.name} 的藍廣分佈`;
     document.getElementById('stats-detail-title').textContent = `${targetPlayer.name} 的每週紀錄明細`;
 
     let pBroadcastPrizeCounts = {};
@@ -774,7 +845,17 @@ function addPlayer(){
   const id='p'+Date.now();
   state.players.push({id,name});
   inp.value='';
-  if(!state.activePlayer) state.activePlayer = id; 
+  selectPlayer(id); // ✨ 新增時同步綁定本地記憶
+  syncToCloud();
+}
+
+function addFirstPlayer(){
+  const inp = document.getElementById('first-player-input');
+  const name = inp.value.trim();
+  if(!name) return;
+  const id = 'p' + Date.now();
+  state.players.push({id, name});
+  selectPlayer(id); // ✨ 新增時同步綁定本地記憶
   syncToCloud();
 }
 
@@ -782,9 +863,10 @@ function removePlayer(id){
   state.players=state.players.filter(p=>p.id!==id);
   if(state.records[id]) delete state.records[id];
   if(state.activePlayer===id){
-    state.activePlayer=state.players.length ? state.players[0].id : '';
+    logoutPlayer(); // ✨ 如果刪掉的是自己，就登出清除本地記憶
+  } else {
+    syncToCloud();
   }
-  syncToCloud();
 }
 
 function switchTab(t){
