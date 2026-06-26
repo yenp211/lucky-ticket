@@ -375,15 +375,15 @@ tr.highlight td {
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <script>
-// ⚠️請把下方這裡，替換成你在第二步申請到的 Firebase 設定資訊
+// 已經換成你剛剛申請的正確 Firebase 金鑰
 const firebaseConfig = {
-  apiKey: "請替換成你的_apiKey",
-  authDomain: "請替換成你的_authDomain",
-  databaseURL: "https://請替換成你的_專案名稱-default-rtdb.firebaseio.com",
-  projectId: "請替換成你的_projectId",
-  storageBucket: "請替換成你的_storageBucket",
-  messagingSenderId: "請替換成你的_messagingSenderId",
-  appId: "請替換成你的_appId"
+  apiKey: "AIzaSyBnelYJnphxiM_ErbgyQx-5g3LiwDVqNUs",
+  authDomain: "maple-lucky-tracker-7e739.firebaseapp.com",
+  databaseURL: "https://maple-lucky-tracker-7e739-default-rtdb.firebaseio.com",
+  projectId: "maple-lucky-tracker-7e739",
+  storageBucket: "maple-lucky-tracker-7e739.firebasestorage.app",
+  messagingSenderId: "408553743543",
+  appId: "1:408553743543:web:f98b0f605a15e852865932"
 };
 
 // 初始化 Firebase
@@ -391,7 +391,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const PRIZES = [
-  "挑戰者幸幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
+  "挑戰者幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
   "挑戰者幸運票 5個","挑戰者幸運票 6個","挑戰者幸運票 7個","挑戰者幸運票 8個",
   "挑戰者幸運票 9個","挑戰者幸運票 10個","挑戰者幸運票 50個","挑戰者幸運票 100個",
   "挑戰者幸運票 500個",
@@ -425,14 +425,13 @@ let state={
   activeWeek:WEEKS[0].key
 };
 
-// 監聽雲端資料庫（當任何人修改資料，這裡會即時觸發並更新所有人畫面）
+// 監聽雲端資料庫
 db.ref('tracker-state').on('value', (snapshot) => {
   const val = snapshot.val();
   if (val) {
     state.players = val.players || [];
     state.records = val.records || {};
     
-    // 防呆自動選中
     if (state.players.length > 0) {
       if (!state.activePlayer || !state.players.find(p=>p.id === state.activePlayer)) {
         state.activePlayer = state.players[0].id;
@@ -446,7 +445,6 @@ db.ref('tracker-state').on('value', (snapshot) => {
     state.activePlayer = '';
   }
   
-  // 隱藏讀取畫面並渲染網頁
   document.getElementById('loading-screen').style.opacity = '0';
   setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
   render();
@@ -479,7 +477,7 @@ function changeCount(prize, delta, event){
   } else {
     state.records[state.activePlayer][state.activeWeek][prize] = next;
   }
-  syncToCloud(); // 儲存到雲端
+  syncToCloud(); 
 }
 
 function renderPlayers(){
@@ -497,7 +495,6 @@ function renderPlayers(){
 function selectPlayer(id){
   state.activePlayer=id;
   renderPrizes();
-  // 只重建切換後的 Chip 外觀
   document.querySelectorAll('.player-chip').forEach(chip => {
     chip.classList.toggle('active', chip.textContent.trim() === state.players.find(p=>p.id===id)?.name);
   });
