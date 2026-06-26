@@ -389,13 +389,13 @@ tr.highlight td {
 
 <div class="wrap">
 <div class="top-bar">
-  <h2>S3挑戰者幸運箱驗血統 ก็็็็็็็็็็็็็ʕ•͡ᴥ•ʔ ก้้้้้้้้้้้</h2>
+  <h2>S3挑戰者幸運箱自己統計看血統 ก็็็็็็็็็็็็็ʕ•͡ᴥ•ʔ ก้้้้้้้้้้้</h2>
 </div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('record')">記錄抽獎</div>
   <div class="tab" onclick="switchTab('stats')">統計總覽</div>
-  <div class="tab" onclick="switchTab('players')">歐洲人們</div>
+  <div class="tab" onclick="switchTab('players')">請輸入你的名字</div>
 </div>
 
 <div class="section active" id="tab-record">
@@ -459,9 +459,7 @@ const db = firebase.database();
 
 // 完整清單
 const PRIZES = [
-  "挑戰者幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
-  "挑戰者幸運票 5個","挑戰者幸運票 6個","挑戰者幸運票 7個","挑戰者幸運票 8個",
-  "挑戰者幸運票 9個","挑戰者幸運票 10個","挑戰者幸運票 50個","挑戰者幸運票 100個",
+  "挑戰者幸運票 50個","挑戰者幸運票 100個",
   "挑戰者幸運票 500個",
   "秋日森林魔能髮夾交換券","秋日森林魔能套裝交換券","秋日森林魔能連衣裙交換券",
   "秋日森林魔能鞋子交換券","魔法沉睡的森林交換券","森林裡的魔法古書包交換券",
