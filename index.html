@@ -1,0 +1,630 @@
+<style>
+/* 日系微甜簡約風配色 */
+:root {
+  --surface-1: #fcfbfa;       /* 整體大背景：極淺燕麥暖白 */
+  --surface-2: #ffffff;       /* 卡片背景：純白 */
+  --text-primary: #2c3038;    /* 主要文字：高級深炭灰 */
+  --text-secondary: #606670;  /* 次要文字：迷霧深灰 */
+  --text-muted: #a0a5b0;      /* 提示文字：淡雅灰 */
+  --border: #f0edf7;          /* 一般邊框：極細淡紫灰 */
+  --border-strong: #d5d9e0;   /* 強調邊框 */
+  
+  --fill-accent: #4a5568;     /* 標籤頁與主按鈕：迷霧午夜藍 */
+  --bg-accent: #f7fafc;       /* 角色選中背景：微風淡藍灰 */
+  --border-accent: #cbd5e0;   /* 角色選中邊框 */
+  
+  --fill-success: #5a8f76;    /* 計數文字：柔霧抹茶綠 */
+  --bg-success: #f2f7f4;      /* 中獎整列高亮：極淡抹茶綠 */
+  --border-success: #d1e2da;  /* 中獎邊框 */
+  --text-success: #416955;    /* 中獎文字 */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--surface-1);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  padding: 2.5rem 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.top-bar h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.btn:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+.btn.primary {
+  background: var(--fill-accent);
+  color: #fff;
+  border-color: var(--fill-accent);
+}
+.btn.primary:hover {
+  opacity: 0.92;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  padding: 10px 18px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  margin-bottom: -1px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  transition: all 0.2s ease;
+}
+.tab:hover {
+  color: var(--text-primary);
+}
+.tab.active {
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border-color: var(--border) var(--border) transparent var(--border);
+  font-weight: 600;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+.player-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.player-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+.player-chip:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+.player-chip.active {
+  border-color: var(--fill-accent);
+  color: #fff;
+  background: var(--fill-accent);
+}
+
+.week-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.week-select select {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.prize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.prize-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+.prize-row:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-1);
+}
+.prize-row.active-count {
+  border-color: var(--border-success);
+  background: var(--bg-success);
+}
+.prize-row.active-count label {
+  color: var(--text-success);
+  font-weight: 500;
+}
+.prize-row label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.counter-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.counter-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+.counter-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+.counter-val {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.prize-row.active-count .counter-val {
+  color: var(--text-success);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 2rem 0 10px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.stat-val {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tbl-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 600px;
+}
+th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+tr:last-child td { border-bottom: none; }
+
+tr.highlight td {
+  background-color: var(--bg-success) !important;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.badge-prize {
+  background: #edf2f7;
+  color: var(--text-secondary);
+  border: 1px solid #e2e8f0;
+}
+.badge-none {
+  background: var(--surface-1);
+  color: var(--text-muted);
+}
+.empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.add-player-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.add-player-row input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+.add-player-row input:focus {
+  border-color: var(--fill-accent);
+}
+#loading-screen {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: var(--surface-1); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; color: var(--text-secondary);
+  z-index: 999; transition: opacity 0.3s ease;
+}
+</style>
+
+<div id="loading-screen">雲端資料同步中...</div>
+
+<div class="wrap">
+<div class="top-bar">
+  <h2>幸運票追蹤表 (雲端同步版)</h2>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('record')">記錄抽獎</div>
+  <div class="tab" onclick="switchTab('stats')">統計總覽</div>
+  <div class="tab" onclick="switchTab('players')">成員管理</div>
+</div>
+
+<div class="section active" id="tab-record">
+  <div class="player-list" id="player-chips"></div>
+  <div class="week-select">
+    <select id="week-select" onchange="renderPrizes()"></select>
+  </div>
+  <div class="prize-grid" id="prize-grid"></div>
+</div>
+
+<div class="section" id="tab-stats">
+  <div class="stats-grid" id="stats-cards"></div>
+  <div class="section-label">每人 × 每週明細</div>
+  <div class="tbl-wrap"><table id="stats-table"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="section" id="tab-players">
+  <div class="section-label">新增成員</div>
+  <div class="add-player-row">
+    <input type="text" id="new-player-input" placeholder="輸入名字" onkeydown="if(event.key==='Enter')addPlayer()">
+    <button class="btn primary" onclick="addPlayer()">新增</button>
+  </div>
+  <div class="section-label">目前成員</div>
+  <div id="player-manage-list"></div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+// ⚠️請把下方這裡，替換成你在第二步申請到的 Firebase 設定資訊
+const firebaseConfig = {
+  apiKey: "請替換成你的_apiKey",
+  authDomain: "請替換成你的_authDomain",
+  databaseURL: "https://請替換成你的_專案名稱-default-rtdb.firebaseio.com",
+  projectId: "請替換成你的_projectId",
+  storageBucket: "請替換成你的_storageBucket",
+  messagingSenderId: "請替換成你的_messagingSenderId",
+  appId: "請替換成你的_appId"
+};
+
+// 初始化 Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const PRIZES = [
+  "挑戰者幸幸運票 1個","挑戰者幸運票 2個","挑戰者幸運票 3個","挑戰者幸運票 4個",
+  "挑戰者幸運票 5個","挑戰者幸運票 6個","挑戰者幸運票 7個","挑戰者幸運票 8個",
+  "挑戰者幸運票 9個","挑戰者幸運票 10個","挑戰者幸運票 50個","挑戰者幸運票 100個",
+  "挑戰者幸運票 500個",
+  "秋日森林魔能髮夾交換券","秋日森林魔能套裝交換券","秋日森林魔能連衣裙交換券",
+  "秋日森林魔能鞋子交換券","魔法沉睡的森林交換券","森林裡的魔法古書包交換券",
+  "卡勒馬星力17星賦予卷軸(200級)","永恆傳說Boss飾品選擇箱",
+  "傳說潛在能力賦予卷軸100%","永恆的黃金發條",
+  "永恆傳說頂級培羅德飾品選擇箱","永恆傳說米特拉的憤怒選擇箱",
+  "永恆星力20星強化券(200級)","永恆18星永恆防具箱","永恆20星漆黑的Boss飾品箱"
+];
+
+function genWeeks(){
+  const weeks=[];
+  let d=new Date(2024,5,24);
+  const end=new Date(2024,9,20);
+  let w=1;
+  while(d<=end){
+    const e=new Date(d);e.setDate(e.getDate()+6);
+    const fmt=dt=>`${dt.getMonth()+1}/${dt.getDate()}`;
+    weeks.push({label:`第${w}週 (${fmt(d)}–${fmt(e)})`,key:`w${w}`});
+    d.setDate(d.getDate()+7);w++;
+  }
+  return weeks;
+}
+const WEEKS=genWeeks();
+
+let state={
+  players:[], 
+  records:{}, 
+  activePlayer:'',
+  activeWeek:WEEKS[0].key
+};
+
+// 監聽雲端資料庫（當任何人修改資料，這裡會即時觸發並更新所有人畫面）
+db.ref('tracker-state').on('value', (snapshot) => {
+  const val = snapshot.val();
+  if (val) {
+    state.players = val.players || [];
+    state.records = val.records || {};
+    
+    // 防呆自動選中
+    if (state.players.length > 0) {
+      if (!state.activePlayer || !state.players.find(p=>p.id === state.activePlayer)) {
+        state.activePlayer = state.players[0].id;
+      }
+    } else {
+      state.activePlayer = '';
+    }
+  } else {
+    state.players = [];
+    state.records = {};
+    state.activePlayer = '';
+  }
+  
+  // 隱藏讀取畫面並渲染網頁
+  document.getElementById('loading-screen').style.opacity = '0';
+  setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 300);
+  render();
+});
+
+function syncToCloud() {
+  db.ref('tracker-state').set({
+    players: state.players,
+    records: state.records
+  });
+}
+
+function getRecordObj(pid, wk){
+  if(!pid) return {};
+  if(!state.records[pid]) state.records[pid]={};
+  if(!state.records[pid][wk]) state.records[pid][wk]={};
+  return state.records[pid][wk];
+}
+
+function changeCount(prize, delta, event){
+  if(event) event.stopPropagation();
+  if(!state.activePlayer) return; 
+  
+  const rec = getRecordObj(state.activePlayer, state.activeWeek);
+  const current = rec[prize] || 0;
+  const next = current + delta;
+  
+  if(next <= 0){
+    delete state.records[state.activePlayer][state.activeWeek][prize];
+  } else {
+    state.records[state.activePlayer][state.activeWeek][prize] = next;
+  }
+  syncToCloud(); // 儲存到雲端
+}
+
+function renderPlayers(){
+  const el=document.getElementById('player-chips');
+  if(!state.players || !state.players.length) {
+    el.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:6px 0;">請至「成員管理」分頁新增您的第一位成員名稱</div>`;
+    return;
+  }
+  el.innerHTML=state.players.map(p=>`
+    <div class="player-chip ${p.id===state.activePlayer?'active':''}" onclick="selectPlayer('${p.id}')">
+      ${p.name}
+    </div>`).join('');
+}
+
+function selectPlayer(id){
+  state.activePlayer=id;
+  renderPrizes();
+  // 只重建切換後的 Chip 外觀
+  document.querySelectorAll('.player-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.textContent.trim() === state.players.find(p=>p.id===id)?.name);
+  });
+}
+
+function renderWeeks(){
+  const sel=document.getElementById('week-select');
+  if(!sel.innerHTML) {
+    sel.innerHTML=WEEKS.map(w=>`<option value="${w.key}" ${w.key===state.activeWeek?'selected':''}>${w.label}</option>`).join('');
+  }
+  sel.onchange=()=>{state.activeWeek=sel.value;renderPrizes();};
+}
+
+function renderPrizes(){
+  state.activeWeek=document.getElementById('week-select').value;
+  if(!state.activePlayer) {
+    document.getElementById('prize-grid').innerHTML = `<div class="empty" style="grid-column: span 3; padding: 2rem;">請先新增成員才能開始記錄抽獎品項喔！</div>`;
+    return;
+  }
+  
+  const rec = getRecordObj(state.activePlayer, state.activeWeek);
+  document.getElementById('prize-grid').innerHTML=PRIZES.map(p=>{
+    const count = rec[p] || 0;
+    const safePrize = p.replace(/'/g,"\\'");
+    return `<div class="prize-row ${count > 0 ? 'active-count' : ''}" onclick="changeCount('${safePrize}', 1)">
+      <label>${p}</label>
+      <div class="counter-box">
+        ${count > 0 ? `<div class="counter-btn" onclick="changeCount('${safePrize}', -1, event)">-</div>` : ''}
+        <div class="counter-val">${count}</div>
+        <div class="counter-btn" onclick="changeCount('${safePrize}', 1, event)">+</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats(){
+  const el=document.getElementById('stats-cards');
+  const tbl=document.getElementById('stats-table');
+  
+  if(!state.players || !state.players.length) {
+    el.innerHTML = `<div class="stat-card" style="grid-column: span 3;"><div class="stat-label">全體合計</div><div class="stat-val">0 個</div></div>`;
+    tbl.querySelector('thead').innerHTML = '';
+    tbl.querySelector('tbody').innerHTML = `<tr><td colspan="4" class="empty">暫無成員資料</td></tr>`;
+    return;
+  }
+  
+  let totalAll=0;
+  const rows=state.players.map(p=>{
+    let total=0;
+    WEEKS.forEach(w=>{
+      const rec = getRecordObj(p.id, w.key);
+      Object.values(rec).forEach(c => total += c);
+    });
+    totalAll+=total;
+    return {name:p.name,total,id:p.id};
+  });
+  
+  el.innerHTML=rows.map(r=>`<div class="stat-card"><div class="stat-label">${r.name}</div><div class="stat-val">${r.total} 個</div></div>`).join('')+
+    `<div class="stat-card"><div class="stat-label">全體合計</div><div class="stat-val">${totalAll} 個</div></div>`;
+
+  const head=tbl.querySelector('thead');
+  const body=tbl.querySelector('tbody');
+  head.innerHTML=`<tr><th>成員</th><th>週次</th><th>獲得獎項 (數量)</th><th>總量</th></tr>`;
+  let html='';
+  
+  state.players.forEach(p=>{
+    WEEKS.forEach(w=>{
+      const rec = getRecordObj(p.id, w.key);
+      const items = Object.entries(rec);
+      if(items.length===0){
+        html+=`<tr><td>${p.name}</td><td style="white-space:nowrap;color:var(--text-secondary)">${w.label}</td><td><span class="badge badge-none">—</span></td><td style="color:var(--text-muted)">0</td></tr>`;
+      } else {
+        let totalWk = 0;
+        const badges = items.map(([name, count]) => {
+          totalWk += count;
+          return `<span class="badge badge-prize" style="margin:2px">${name} x${count}</span>`;
+        }).join(' ');
+        html+=`<tr class="highlight"><td>${p.name}</td><td style="white-space:nowrap;color:var(--text-secondary)">${w.label}</td><td>${badges}</td><td style="font-weight:600; color:var(--text-success)">${totalWk}</td></tr>`;
+      }
+    });
+  });
+  body.innerHTML=html||`<tr><td colspan="4" class="empty">尚無記錄</td></tr>`;
+}
+
+function renderManage(){
+  const el = document.getElementById('player-manage-list');
+  if(!state.players || !state.players.length) {
+    el.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:10px 0;">目前無任何成員。</div>`;
+    return;
+  }
+  el.innerHTML=state.players.map(p=>`
+    <div class="prize-row" style="margin-bottom:6px;grid-column:span 1; cursor:default;">
+      <label style="flex:1">${p.name}</label>
+      <button class="btn" onclick="removePlayer('${p.id}')" style="padding:4px 8px;font-size:12px">刪除</button>
+    </div>`).join('');
+}
+
+function addPlayer(){
+  const inp=document.getElementById('new-player-input');
+  const name=inp.value.trim();
+  if(!name)return;
+  const id='p'+Date.now();
+  state.players.push({id,name});
+  inp.value='';
+  if(!state.activePlayer) state.activePlayer = id; 
+  syncToCloud();
+}
+
+function removePlayer(id){
+  state.players=state.players.filter(p=>p.id!==id);
+  if(state.records[id]) delete state.records[id];
+  if(state.activePlayer===id){
+    state.activePlayer=state.players.length ? state.players[0].id : '';
+  }
+  syncToCloud();
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    const tabs=['record','stats','players'];
+    el.classList.toggle('active',tabs[i]===t);
+  });
+  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='stats') renderStats();
+  if(t==='players') renderManage();
+}
+
+function render(){renderPlayers();renderWeeks();renderPrizes();}
+</script>
